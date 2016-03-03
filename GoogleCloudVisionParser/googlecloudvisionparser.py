@@ -121,7 +121,10 @@ class GoogleCloudVisionParser(BotPlugin):
     def img_url_match(self, msg, match):
         url = match.groups()[0]
         self.log.info('got url: {}'.format(url))
-        image_content = get_image(url)
+        try:
+            image_content = get_image(url)
+        except UserWarning:
+            return
         
         calls, date = self.check_quota()
         if calls >= DAILY_QUOTA:
