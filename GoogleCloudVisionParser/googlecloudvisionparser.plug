@@ -1,0 +1,9 @@
+[Core]
+Name = GoogleCloudVisionParser
+Module = googlecloudvisionparser
+
+[Python]
+Version = 3
+
+[Documentation]
+Description = Plugin for errbot to respond to image url's with data returned from Google Cloud Vision
