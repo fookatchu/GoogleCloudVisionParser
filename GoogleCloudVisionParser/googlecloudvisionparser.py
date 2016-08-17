@@ -3,8 +3,10 @@ import re
 import requests
 import base64
 import io
+import time
 import datetime as dt
 from collections import OrderedDict
+# from PIL import Image, ImageDraw
 from PIL import Image, ImageDraw
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
@@ -123,7 +125,10 @@ class GoogleCloudVisionParser(BotPlugin):
         self.log.info('got url: {}'.format(url))
         try:
             image_content = get_image(url)
-        except UserWarning:
+        except:
+            yield 'crunshing image...'
+            time.sleep(2)
+            yield 'not! :-p'
             return
         
         calls, date = self.check_quota()
