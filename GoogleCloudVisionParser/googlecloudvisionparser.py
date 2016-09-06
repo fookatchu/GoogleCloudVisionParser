@@ -10,6 +10,7 @@ from collections import OrderedDict
 from PIL import Image, ImageDraw
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
+import traceback
 try:
     from IPython import embed
 except:
@@ -119,13 +120,20 @@ class GoogleCloudVisionParser(BotPlugin):
         yield 'resetting quota'
         self['QUOTA'] = (0, dt.date.today())
 
-    @re_botcmd(prefixed=False, flags=re.IGNORECASE, pattern='(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)')
+    @re_botcmd(prefixed=False, flags=re.IGNORECASE, pattern='(http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]|\.(jpe?g|png|gif|bmp)))+)')
     def img_url_match(self, msg, match):
         url = match.groups()[0]
         self.log.info('got url: {}'.format(url))
         try:
             image_content = get_image(url)
+        except UserWarning:
+            self.log.exception(traceback.format_exc())
+            return
+        except requests.exceptions.ConnectionError:
+            self.log.exception(traceback.format_exc())
+            return
         except:
+            self.log.exception(traceback.format_exc())
             yield 'crunshing image...'
             time.sleep(2)
             yield 'not! :-p'
