@@ -22,15 +22,32 @@ MAX_IMAGE_SIZE = 1600
 MAX_RESULTS = 10
 DAILY_QUOTA = 30
 
-likelihood_format = {
-    'UNKNOWN': '[__?__]',
-    'VERY_UNLIKELY': '[+____]',
-    'UNLIKELY': '[++___]',
-    'POSSIBLE': '[+++__]',
-    'LIKELY': '[++++_]',
-    'VERY_LIKELY': '[+++++]',
-}
+# likelihood_format = {
+#     'UNKNOWN': '[__?__]',
+#     'VERY_UNLIKELY': '[+____]',
+#     'UNLIKELY': '[++___]',
+#     'POSSIBLE': '[+++__]',
+#     'LIKELY': '[++++_]',
+#     'VERY_LIKELY': '[+++++]',
+# }
 
+# likelihood_format = {
+#     'UNKNOWN': '?',
+#     'VERY_UNLIKELY': '○',
+#     'UNLIKELY': '◔',
+#     'POSSIBLE': '◑',
+#     'LIKELY': '◕',
+#     'VERY_LIKELY': '●',
+# }
+
+likelihood_format = {
+    'UNKNOWN': '?',
+    'VERY_UNLIKELY': '1/5',
+    'UNLIKELY': '2/5',
+    'POSSIBLE': '3/5',
+    'LIKELY': '4/5',
+    'VERY_LIKELY': '5/5',
+}
 
 def resize(image):
     width, height = image.size
@@ -144,7 +161,7 @@ class GoogleCloudVisionParser(BotPlugin):
             yield 'max calls per day reached!'
             return
 
-        yield 'crunshing image...'
+        # yield 'crunshing image...'
         # storing the credentials didn't work (?!), so they will be build everytime.
         # see https://cloud.google.com/vision/docs/getting-started on how to get an api key
         credentials = GoogleCredentials.get_application_default()
@@ -161,34 +178,14 @@ class GoogleCloudVisionParser(BotPlugin):
                     'maxResults': MAX_RESULTS
                 },
                 {
-                    'type': 'FACE_DETECTION',
-                    'maxResults': MAX_RESULTS
-                },
-                {
                     'type': 'SAFE_SEARCH_DETECTION'
                 }
                 ]
             }]
         })
         response = service_request.execute()
-        try:
-            faces = response['responses'][0]['faceAnnotations']
-            yield '======= FACES ======='
-            for i, face in enumerate(faces):
-                yield 'FACE #{}:'.format(i)
-                face_results = format_face(face)
-                for key, val in face_results.items():
-                    yield '{:>15}: {}'.format(val, key)
-                yield ''
-        except KeyError:  # no faces detected
-            pass
-
         safe_search_results = format_safe_search(response['responses'][0]['safeSearchAnnotation'])
-        yield '======= SFW ======='
-        for key, val in safe_search_results.items():
-            yield '{:>15}: {}'.format(val, key)
-        yield ''
-        yield '======= TAGS ======='
-        yield ', '.join([item['description'] for item in response['responses'][0]['labelAnnotations']])
+        yield 'SFW-Score: ' + ', '.join(['{}: {}'.format(key, value) for key, value in safe_search_results.items()])
+        yield 'Tags: ' + ', '.join([item['description'] for item in response['responses'][0]['labelAnnotations']])
         self.increment_quota()
         
